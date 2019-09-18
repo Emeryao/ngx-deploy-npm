@@ -1,8 +1,9 @@
 import { logging } from '@angular-devkit/core';
-import exec from './utils/exec-async';
-
 import { Schema } from '../deploy/schema';
 import { defaults } from './defaults';
+import exec from './utils/exec-async';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export async function run(
   dir: string,
@@ -12,20 +13,29 @@ export async function run(
   try {
     options = exports.prepareOptions(options, logger);
 
-    const commandToPublish = `npm publish ${dir} ${exports.getOptionsString(
-      options
-    )}`;
+    if (options.packageVersion) {
+      let packageContent: string = fs.readFileSync(path.join(dir, 'package.json'), { encoding: 'utf8' });
+
+      let packageObj: any = JSON.parse(packageContent);
+
+      packageObj.version = options.packageVersion;
+
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(packageObj, null, 4), { encoding: 'utf8' });
+    }
+
+    const commandToPublish = `npm publish ${dir} ${exports.getOptionsString(options)}`;
+
     const { stdout, stderr } = await exec(commandToPublish);
 
     logger.info(stdout);
     logger.info(stderr);
 
     if (options.dryRun) {
-      await logger.info('The options are:');
-      await logger.info(JSON.stringify(options, null, 1));
+      logger.info('The options are:');
+      logger.info(JSON.stringify(options, null, 1));
     }
 
-    await logger.info(
+    logger.info(
       '🚀 Successfully published via ngx-deploy-npm! Have a nice day!'
     );
   } catch (error) {
@@ -51,7 +61,7 @@ export function getOptionsString(options: Schema) {
   return (
     Object.keys(options)
       // Get only options with value
-      .filter(optKey => !!options[optKey])
+      .filter(optKey => !!options[optKey] && optKey != 'packageVersion')
       // to CMD option
       .map(optKey => ({
         cmdOptions: `--${toKebabCase(optKey)}`,
