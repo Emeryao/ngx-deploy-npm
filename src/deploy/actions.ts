@@ -1,6 +1,4 @@
 import { BuilderContext, Target } from '@angular-devkit/architect';
-import { logging } from '@angular-devkit/core';
-
 import { Schema } from './schema';
 
 export default async function deploy(
@@ -8,7 +6,7 @@ export default async function deploy(
     run: (
       dir: string,
       options: Schema,
-      logger: logging.LoggerApi
+      context: BuilderContext,
     ) => Promise<void>;
   },
   context: BuilderContext,
@@ -22,9 +20,7 @@ export default async function deploy(
   const configuration = options.configuration;
 
   context.logger.info(
-    `📦 Building "${context.target.project}". ${
-      configuration ? `Configuration "${configuration}"` : ''
-    }`
+    `📦 Building "${context.target.project}". ${configuration ? `Configuration "${configuration}"` : ''}`
   );
 
   const target = {
@@ -43,6 +39,6 @@ export default async function deploy(
   await engine.run(
     projectRoot,
     options,
-    (context.logger as unknown) as logging.LoggerApi
+    context,
   );
 }

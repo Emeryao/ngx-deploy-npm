@@ -1,17 +1,23 @@
+import { BuilderContext } from '@angular-devkit/architect';
 import { logging } from '@angular-devkit/core';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Schema } from '../deploy/schema';
 import { defaults } from './defaults';
 import exec from './utils/exec-async';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export async function run(
   dir: string,
   options: Schema,
-  logger: logging.LoggerApi
+  context: BuilderContext,
 ) {
+  const logger: logging.LoggerApi = context.logger;
   try {
     options = exports.prepareOptions(options, logger);
+
+    if (fs.existsSync(path.join(context.workspaceRoot, 'README.md')) && !fs.existsSync(path.join(dir, 'README.md'))) {
+      fs.copyFileSync(path.join(context.workspaceRoot, 'README.md'), path.join(dir, 'README.md'))
+    }
 
     if (options.packageVersion) {
       let packageContent: string = fs.readFileSync(path.join(dir, 'package.json'), { encoding: 'utf8' });
@@ -68,9 +74,7 @@ export function getOptionsString(options: Schema) {
         value: options[optKey]
       }))
       // to string
-      .map(
-        cmdOptionValue => `${cmdOptionValue.cmdOptions} ${cmdOptionValue.value}`
-      )
+      .map(cmdOptionValue => `${cmdOptionValue.cmdOptions} ${cmdOptionValue.value}`)
       .join(' ')
   );
 

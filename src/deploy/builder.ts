@@ -1,13 +1,8 @@
-import {
-  BuilderContext,
-  BuilderOutput,
-  createBuilder
-} from '@angular-devkit/architect';
+import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect';
 import { asWindowsPath, experimental, normalize } from '@angular-devkit/core';
 import { NodeJsSyncHost } from '@angular-devkit/core/node';
 import os from 'os';
 import * as path from 'path';
-
 import * as engine from '../engine/engine';
 import deploy from './actions';
 import { Schema } from './schema';
@@ -22,9 +17,8 @@ export default createBuilder<any>(
       root,
       new NodeJsSyncHost()
     );
-    await workspace
-      .loadWorkspaceFromHost(normalize('angular.json'))
-      .toPromise();
+
+    await workspace.loadWorkspaceFromHost(normalize('angular.json')).toPromise();
 
     if (!context.target) {
       throw new Error('Cannot deploy the application without a target');
@@ -37,9 +31,7 @@ export default createBuilder<any>(
     // normalizes pathes don't work with all native functions
     // as a workaround, you can use the following 2 lines
     const isWin = os.platform() === 'win32';
-    const workspaceRoot = !isWin
-      ? workspace.root
-      : asWindowsPath(workspace.root);
+    const workspaceRoot = !isWin ? workspace.root : asWindowsPath(workspace.root);
     // if this is not necessary, use this:
     // const workspaceRoot =  workspace.root;
 
@@ -63,17 +55,14 @@ export default createBuilder<any>(
 const fs = require('fs');
 function readFileAsync<T>(path: string): Promise<T> {
   return new Promise((res, rej) => {
-    fs.readFile(path, 'utf8', function(err, contents) {
+    fs.readFile(path, 'utf8', function (err, contents) {
       if (err) rej(err);
-
       res(contents);
     });
   });
 }
 
-async function getLibraryOutputPath(
-  targets: experimental.workspace.WorkspaceTool
-) {
+async function getLibraryOutputPath(targets: experimental.workspace.WorkspaceTool) {
   const ngPackagePath = targets.build.options.project;
 
   try {

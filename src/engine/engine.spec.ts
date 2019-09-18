@@ -1,12 +1,12 @@
-import { logging } from '../__mocks__/utils/dev-kit-logger';
-
-import * as engine from './engine';
-
+import { BuilderContext } from '@angular-devkit/architect';
 import { Schema } from '../deploy/schema';
+import { logging } from '../__mocks__/utils/dev-kit-logger';
 import { npmAccess } from './defaults';
+import * as engine from './engine';
+import * as execAsync from './utils/exec-async';
 
 jest.mock('./utils/exec-async');
-import * as execAsync from './utils/exec-async';
+let context: BuilderContext;
 
 describe('engine', () => {
   describe('getOptionsString', () => {
@@ -98,13 +98,13 @@ describe('engine', () => {
         .mockReturnValue(customOptionsCMD);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       jest.clearAllMocks();
     });
 
     it('should execute the command correctly', (done: () => void) => {
       engine
-        .run(dir, customOptions, logging)
+        .run(dir, customOptions, context)
         .then(() => {
           expect(execAsync.default).toHaveBeenCalledWith(
             `npm publish ${dir} ${customOptionsCMD}`
@@ -120,7 +120,7 @@ describe('engine', () => {
       const customErr = 'custom err';
 
       engine
-        .run(dir, customOptions, logging)
+        .run(dir, customOptions, context)
         .then(() => fail('should enter in the catch section'))
         .catch(err => {
           expect(customErr).toEqual(err);
